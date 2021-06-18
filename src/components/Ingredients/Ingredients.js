@@ -15,9 +15,8 @@ function Ingredients() {
 
     const removeIng = (id) => {
         setIngs((prevIngs) => {
-          let _id = id;
-          let _ings = [prevIngs.filter((ig)=>_id!==ig.id)]
-            return[..._ings];
+            let _id = id;
+            return prevIngs.filter((ig) => _id !== ig.id);
         });
     };
 
@@ -27,7 +26,10 @@ function Ingredients() {
 
             <section>
                 <Search />
-                <IngredientList onRemoveItem={removeIng} ingredients={ings}></IngredientList>
+                <IngredientList
+                    onRemoveItem={removeIng}
+                    ingredients={ings}
+                ></IngredientList>
                 {/* Need to add list here! */}
             </section>
         </div>
