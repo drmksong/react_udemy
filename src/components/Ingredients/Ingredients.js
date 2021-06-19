@@ -8,6 +8,11 @@ function Ingredients() {
     const [ings, setIngs] = useState([]);
 
     const addIngs = (ing) => {
+        fetch('https://react-song/firebaseio.com/ing.json',{
+            method: 'POST',
+            body: JSON.stringify(),
+            header: {'content-type':'application/json'},
+        });
         setIngs((prevIngs) => {
             return [...prevIngs, { id: Math.random().toString(), ...ing }];
         });
