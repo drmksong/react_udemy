@@ -8,14 +8,22 @@ function Ingredients() {
     const [ings, setIngs] = useState([]);
 
     const addIngs = (ing) => {
-        fetch('https://react-song/firebaseio.com/ing.json',{
-            method: 'POST',
-            body: JSON.stringify(),
-            header: {'content-type':'application/json'},
-        });
-        setIngs((prevIngs) => {
-            return [...prevIngs, { id: Math.random().toString(), ...ing }];
-        });
+        fetch(
+            "https://react-song-default-rtdb.asia-southeast1.firebasedatabase.app/ing.json",
+            {
+                method: "POST",
+                body: JSON.stringify(ing),
+                header: { "content-type": "application/json" },
+            }
+        )
+            .then((res) => {
+                return res.json();
+            })
+            .then((resdata) => {
+                setIngs((prevIngs) => {
+                    return [...prevIngs, { id: resdata.name, ...ing }];
+                });
+            });
     };
 
     const removeIng = (id) => {
@@ -25,6 +33,7 @@ function Ingredients() {
         });
     };
 
+    
     return (
         <div className="App">
             <IngredientForm onAddIngs={addIngs} />

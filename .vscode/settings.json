@@ -1,5 +1,6 @@
 {
-    "editor.fontLigatures": true,
+    "editor.fontLigatures": false,
     "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.fontFamily": "'Source Code Pro', Consolas, 'Courier New', monospace"
+    // "editor.fontFamily": "'Source Code Pro'",
+    "editor.fontWeight": 500,
 }
