@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 
 import IngredientForm from "./IngredientForm";
 import IngredientList from "./IngredientList";
@@ -6,6 +6,32 @@ import Search from "./Search";
 
 function Ingredients() {
     const [ings, setIngs] = useState([]);
+
+    // useEffect(() => {
+    //     fetch(
+    //         "https://react-song-default-rtdb.asia-southeast1.firebasedatabase.app/ing.json"
+    //     )
+    //         .then((res) => {
+    //             return res.json();
+    //         })
+    //         .then((resData) => {
+    //             const ingData = [];
+    //             for (let key in resData) {
+    //                 ingData.push({
+    //                     id: key,
+    //                     title: resData[key].title,
+    //                     amount: resData[key].amount,
+    //                 });
+    //                 // console.log(key);
+    //             }
+    //             setIngs(ingData);
+    //         });
+    // }, []);
+
+    const loadIngs = useCallback((ings) => {
+        console.log(ings);
+        setIngs(ings);
+    });
 
     const addIngs = (ing) => {
         fetch(
@@ -33,13 +59,12 @@ function Ingredients() {
         });
     };
 
-    
     return (
         <div className="App">
             <IngredientForm onAddIngs={addIngs} />
 
             <section>
-                <Search />
+                <Search onLoadIngs={loadIngs} />
                 <IngredientList
                     onRemoveItem={removeIng}
                     ingredients={ings}
