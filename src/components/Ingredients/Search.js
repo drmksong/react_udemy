@@ -8,32 +8,37 @@ const Search = React.memo((props) => {
     const [searchKey, setSearchKey] = useState("");
     // const [ings, setIngs] = useState([]);
     useEffect(() => {
-        const query = searchKey==='' ? 
-        '':
-        `?orderBy="title"&equalTo="${searchKey}"`;
-
-        fetch("https://react-song-default-rtdb.asia-southeast1.firebasedatabase.app/ing.json"+query)
-            .then((res) => {
-                return res.json();
-            })
-            .then((resData) => {
-                let ingData = [];
-                for (let key in resData) {
-                    ingData.push({
-                        id: key,
-                        title: resData[key].title,
-                        amount: resData[key].amount,
-                    });
-                    // console.log(key);
-                }
-                // setIngs(ingData);
-                // ingData = ingData.filter((ig) => {
-                //     return searchKey===''?true:ig.title === searchKey;
-                // });
-                props.onLoadIngs(ingData);
-                console.log(ingData);
-
-            });
+        const query =
+            searchKey === "" ? "" : `?orderBy="title"&equalTo="${searchKey}"`;
+        const timer = setTimeout(() => {
+            fetch(
+                "https://react-song-default-rtdb.asia-southeast1.firebasedatabase.app/ing.json" +
+                    query
+            )
+                .then((res) => {
+                    return res.json();
+                })
+                .then((resData) => {
+                    let ingData = [];
+                    for (let key in resData) {
+                        ingData.push({
+                            id: key,
+                            title: resData[key].title,
+                            amount: resData[key].amount,
+                        });
+                        // console.log(key);
+                    }
+                    // setIngs(ingData);
+                    // ingData = ingData.filter((ig) => {
+                    //     return searchKey===''?true:ig.title === searchKey;
+                    // });
+                    props.onLoadIngs(ingData);
+                    console.log(ingData);
+                });
+        }, 500);
+        return ()=>{
+            clearTimeout(timer);
+        }
     }, [searchKey]);
 
     return (

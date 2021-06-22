@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 
 import Card from "../UI/Card";
+import LoadingIndicator from '../UI/LoadingIndicator';
 import "./IngredientForm.css";
 
 const IngredientForm = React.memo((props) => {
@@ -8,6 +9,9 @@ const IngredientForm = React.memo((props) => {
     // const [state, setState] = useState({ title: "", amount: "" });
     const [title, setTitle] = useState("");
     const [amount, setAmount] = useState("");
+
+    const titleRef = useRef();
+    const amountRef = useRef();
 
     // const onAmountChange = (e) => {
     //     inputState.target.setAmount(e.target.value);
@@ -22,6 +26,9 @@ const IngredientForm = React.memo((props) => {
     const submitHandler = (event) => {
         event.preventDefault();
         props.onAddIngs({title:title, amount:amount});
+        setTitle('');
+        setAmount('');
+        titleRef.current.focus();
         // ...
     };
 
@@ -32,6 +39,7 @@ const IngredientForm = React.memo((props) => {
                     <div className="form-control">
                         <label htmlFor="title">Title</label>
                         <input
+                            ref = {titleRef}
                             value={title}
                             onChange={(e) => {
                                 setTitle(e.target.value);
@@ -44,6 +52,7 @@ const IngredientForm = React.memo((props) => {
                     <div className="form-control">
                         <label htmlFor="amount">Amount</label>
                         <input
+                            ref = {amountRef}
                             value={amount}
                             onChange={(e) => {
                                 setAmount(e.target.value);
@@ -57,6 +66,7 @@ const IngredientForm = React.memo((props) => {
                         <button onClick={submitHandler} type="submit">
                             Add Ingredient
                         </button>
+                        {props.loading ? <LoadingIndicator/> : null}
                     </div>
                 </form>
             </Card>

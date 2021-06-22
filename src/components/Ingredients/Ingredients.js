@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 
 import IngredientForm from "./IngredientForm";
 import IngredientList from "./IngredientList";
@@ -6,6 +6,7 @@ import Search from "./Search";
 
 function Ingredients() {
     const [ings, setIngs] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
 
     // useEffect(() => {
     //     fetch(
@@ -34,6 +35,7 @@ function Ingredients() {
     });
 
     const addIngs = (ing) => {
+        setIsLoading(true);
         fetch(
             "https://react-song-default-rtdb.asia-southeast1.firebasedatabase.app/ing.json",
             {
@@ -46,6 +48,7 @@ function Ingredients() {
                 return res.json();
             })
             .then((resdata) => {
+                setIsLoading(false);
                 setIngs((prevIngs) => {
                     return [...prevIngs, { id: resdata.name, ...ing }];
                 });
@@ -53,15 +56,24 @@ function Ingredients() {
     };
 
     const removeIng = (id) => {
-        setIngs((prevIngs) => {
-            let _id = id;
-            return prevIngs.filter((ig) => _id !== ig.id);
+        setIsLoading(true);
+        fetch(
+            `https://react-song-default-rtdb.asia-southeast1.firebasedatabase.app/ing/${id}.json`,
+            {
+                method: "DELETE",
+            }
+        ).then((res) => {
+            setIsLoading(false);
+            setIngs((prevIngs) => {
+                let _id = id;
+                return prevIngs.filter((ig) => _id !== ig.id);
+            });
         });
     };
 
     return (
         <div className="App">
-            <IngredientForm onAddIngs={addIngs} />
+            <IngredientForm onAddIngs={addIngs} loading={isLoading} />
 
             <section>
                 <Search onLoadIngs={loadIngs} />
