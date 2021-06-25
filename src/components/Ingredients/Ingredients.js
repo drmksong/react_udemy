@@ -1,12 +1,48 @@
-import React, { useState, useCallback } from "react";
+import React, { useReducer, useCallback,useContext } from "react";
 
 import IngredientForm from "./IngredientForm";
 import IngredientList from "./IngredientList";
 import Search from "./Search";
+import ErrorModal from "../UI/ErrorModal";
+import { AuthContext } from "../../Context/Auth-Context";
+
+const ingReducer = (ings, action) => {
+    switch (action.type) {
+        case "ADD":
+            return [...ings, action.ing];
+        case "SET":
+            return action.ings;
+        case "DELETE":
+            return ings.filter((ig) => ig.id !== action.id);
+        default:
+            return ings;
+    }
+};
+
+const httpReducer = (httpState, action) => {
+    switch (action.type) {
+        case "SEND":
+            return {loading: true, error:null};
+        case "RESPONSE":
+            return {...httpState, loading:false};
+        case "ERROR":
+            return {loading:false, error:action.errorMessage};
+        case "CLEAR":
+            return {loading:false, error:null};
+        default:
+            throw new Error("Should not get here");
+    }
+};
 
 function Ingredients() {
-    const [ings, setIngs] = useState([]);
-    const [isLoading, setIsLoading] = useState(false);
+    const [ings, dispatch] = useReducer(ingReducer, []);
+    const [httpState, dispatchHttp] = useReducer(httpReducer, {
+        loading: false,
+        error: null,
+    });
+    // const [ings, setIngs] = useState([]);
+    // const [isLoading, setIsLoading] = useState(false);
+    // const [error, setError] = useState();
 
     // useEffect(() => {
     //     fetch(
@@ -31,11 +67,13 @@ function Ingredients() {
 
     const loadIngs = useCallback((ings) => {
         console.log(ings);
-        setIngs(ings);
+        // setIngs(ings);
+        dispatch({ type: "SET", ings: ings });
     });
 
     const addIngs = (ing) => {
-        setIsLoading(true);
+        // setIsLoading(true);
+        dispatchHttp({type:'SEND'})
         fetch(
             "https://react-song-default-rtdb.asia-southeast1.firebasedatabase.app/ing.json",
             {
@@ -48,32 +86,55 @@ function Ingredients() {
                 return res.json();
             })
             .then((resdata) => {
-                setIsLoading(false);
-                setIngs((prevIngs) => {
-                    return [...prevIngs, { id: resdata.name, ...ing }];
-                });
+                // setIngs((prevIngs) => {
+                //     return [...prevIngs, { id: resdata.name, ...ing }];
+                // });
+                // setIsLoading(false);
+                dispatchHttp({type:'RESPONSE'})
+                dispatch({ type: "ADD", ing: ing });
             });
     };
 
     const removeIng = (id) => {
-        setIsLoading(true);
+        // setIsLoading(true);
+        dispatchHttp({type:'SEND'});
         fetch(
             `https://react-song-default-rtdb.asia-southeast1.firebasedatabase.app/ing/${id}.json`,
             {
                 method: "DELETE",
             }
-        ).then((res) => {
-            setIsLoading(false);
-            setIngs((prevIngs) => {
-                let _id = id;
-                return prevIngs.filter((ig) => _id !== ig.id);
+        )
+            .then((res) => {
+                // setIsLoading(false);
+                dispatchHttp({type:'RESPONSE'});
+                // setIngs((prevIngs) => {
+                //     let _id = id;
+                //     return prevIngs.filter((ig) => _id !== ig.id);
+                // });
+                dispatch({ type: "DELETE", id: id });
+                // throw "Error occurred";
+            })
+            .catch((error) => {
+                // setIsLoading(false);
+                // setError("something wrong");
+                dispatchHttp({type:'ERROR',errorMessage:'Something went wrong!!!'})
             });
-        });
     };
+
+    const closeError = () => {
+        // setError(null);
+        dispatchHttp({type:'CLEAR'})
+    };
+
+    const authContext = useContext(AuthContext);
 
     return (
         <div className="App">
-            <IngredientForm onAddIngs={addIngs} loading={isLoading} />
+            {httpState.error && <ErrorModal children={httpState.error} onClose={closeError} />}
+            <button onClick={authContext.logout}>
+                logout
+            </button>
+            <IngredientForm onAddIngs={addIngs} loading={httpState.loading} />
 
             <section>
                 <Search onLoadIngs={loadIngs} />
