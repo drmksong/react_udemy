@@ -1,10 +1,11 @@
-import React, { useReducer, useCallback,useContext } from "react";
+import React, { useReducer, useCallback, useContext, useMemo } from "react";
 
 import IngredientForm from "./IngredientForm";
 import IngredientList from "./IngredientList";
 import Search from "./Search";
 import ErrorModal from "../UI/ErrorModal";
 import { AuthContext } from "../../Context/Auth-Context";
+import "./ingredients.css";
 
 const ingReducer = (ings, action) => {
     switch (action.type) {
@@ -22,19 +23,19 @@ const ingReducer = (ings, action) => {
 const httpReducer = (httpState, action) => {
     switch (action.type) {
         case "SEND":
-            return {loading: true, error:null};
+            return { loading: true, error: null };
         case "RESPONSE":
-            return {...httpState, loading:false};
+            return { ...httpState, loading: false };
         case "ERROR":
-            return {loading:false, error:action.errorMessage};
+            return { loading: false, error: action.errorMessage };
         case "CLEAR":
-            return {loading:false, error:null};
+            return { loading: false, error: null };
         default:
             throw new Error("Should not get here");
     }
 };
 
-function Ingredients() {
+const Ingredients = React.memo(() => {
     const [ings, dispatch] = useReducer(ingReducer, []);
     const [httpState, dispatchHttp] = useReducer(httpReducer, {
         loading: false,
@@ -71,9 +72,9 @@ function Ingredients() {
         dispatch({ type: "SET", ings: ings });
     });
 
-    const addIngs = (ing) => {
+    const addIngs = useCallback((ing) => {
         // setIsLoading(true);
-        dispatchHttp({type:'SEND'})
+        dispatchHttp({ type: "SEND" });
         fetch(
             "https://react-song-default-rtdb.asia-southeast1.firebasedatabase.app/ing.json",
             {
@@ -90,14 +91,14 @@ function Ingredients() {
                 //     return [...prevIngs, { id: resdata.name, ...ing }];
                 // });
                 // setIsLoading(false);
-                dispatchHttp({type:'RESPONSE'})
+                dispatchHttp({ type: "RESPONSE" });
                 dispatch({ type: "ADD", ing: ing });
             });
-    };
+    }, []);
 
-    const removeIng = (id) => {
+    const removeIng = useCallback((id) => {
         // setIsLoading(true);
-        dispatchHttp({type:'SEND'});
+        dispatchHttp({ type: "SEND" });
         fetch(
             `https://react-song-default-rtdb.asia-southeast1.firebasedatabase.app/ing/${id}.json`,
             {
@@ -106,7 +107,7 @@ function Ingredients() {
         )
             .then((res) => {
                 // setIsLoading(false);
-                dispatchHttp({type:'RESPONSE'});
+                dispatchHttp({ type: "RESPONSE" });
                 // setIngs((prevIngs) => {
                 //     let _id = id;
                 //     return prevIngs.filter((ig) => _id !== ig.id);
@@ -117,35 +118,55 @@ function Ingredients() {
             .catch((error) => {
                 // setIsLoading(false);
                 // setError("something wrong");
-                dispatchHttp({type:'ERROR',errorMessage:'Something went wrong!!!'})
+                dispatchHttp({
+                    type: "ERROR",
+                    errorMessage: "Something went wrong!!!",
+                });
             });
-    };
+    }, []);
 
     const closeError = () => {
         // setError(null);
-        dispatchHttp({type:'CLEAR'})
+        dispatchHttp({ type: "CLEAR" });
     };
 
     const authContext = useContext(AuthContext);
 
-    return (
-        <div className="App">
-            {httpState.error && <ErrorModal children={httpState.error} onClose={closeError} />}
-            <button onClick={authContext.logout}>
-                logout
-            </button>
-            <IngredientForm onAddIngs={addIngs} loading={httpState.loading} />
+    const ingList = useMemo(() => {
+        return (
+            <IngredientList
+                onRemoveItem={removeIng}
+                ingredients={ings}
+            ></IngredientList>
+        );
+    },[removeIng,ings]);
 
-            <section>
-                <Search onLoadIngs={loadIngs} />
-                <IngredientList
-                    onRemoveItem={removeIng}
-                    ingredients={ings}
-                ></IngredientList>
-                {/* Need to add list here! */}
-            </section>
-        </div>
+    return (
+        <React.Fragment className="ingredient">
+            <div className="ingredient-btn">
+                <button onClick={authContext.logout}>logout</button>
+            </div>
+            <div className="App">
+                {httpState.error && (
+                    <ErrorModal
+                        children={httpState.error}
+                        onClose={closeError}
+                    />
+                )}
+
+                <IngredientForm
+                    onAddIngs={addIngs}
+                    loading={httpState.loading}
+                />
+
+                <section>
+                    <Search onLoadIngs={loadIngs} />
+                    {ingList}
+                    {/* Need to add list here! */}
+                </section>
+            </div>
+        </React.Fragment>
     );
-}
+});
 
 export default Ingredients;
